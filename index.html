@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz OHADA — Comptabilité & Contrôle de Gestion</title>
+<style>
+  :root {
+    --vert: #00843D;
+    --or: #FCD116;
+    --rouge: #CE1126;
+    --bg: #0f1117;
+    --card: #1a1d27;
+    --card2: #22263a;
+    --texte: #e8eaf6;
+    --gris: #8892b0;
+    --radius: 12px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--texte);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* ── HEADER ── */
+  header {
+    width: 100%;
+    background: var(--card);
+    border-bottom: 3px solid var(--vert);
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .logo-ohada {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--vert) 40%, var(--or));
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900; font-size: 14px; color: #fff; letter-spacing: 1px;
+    flex-shrink: 0;
+  }
+  header h1 { font-size: 1.25rem; line-height: 1.3; }
+  header h1 span { color: var(--or); }
+  header p { font-size: .8rem; color: var(--gris); margin-top: 2px; }
+
+  /* ── CONTENU PRINCIPAL ── */
+  main {
+    width: 100%; max-width: 760px;
+    padding: 32px 16px 60px;
+  }
+
+  /* ── ÉCRAN D'ACCUEIL ── */
+  #screen-home { text-align: center; }
+  .hero-title {
+    font-size: 2rem; font-weight: 800;
+    margin: 24px 0 8px;
+    background: linear-gradient(90deg, var(--vert), var(--or));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .hero-sub { color: var(--gris); font-size: 1rem; margin-bottom: 32px; }
+
+  .cat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 14px;
+    margin-bottom: 32px;
+  }
+  .cat-card {
+    background: var(--card);
+    border: 2px solid transparent;
+    border-radius: var(--radius);
+    padding: 20px 16px;
+    cursor: pointer;
+    transition: border-color .2s, transform .15s;
+    text-align: left;
+  }
+  .cat-card:hover { border-color: var(--vert); transform: translateY(-2px); }
+  .cat-card.selected { border-color: var(--or); background: var(--card2); }
+  .cat-icon { font-size: 1.8rem; margin-bottom: 8px; }
+  .cat-name { font-weight: 700; font-size: .95rem; }
+  .cat-count { font-size: .78rem; color: var(--gris); margin-top: 4px; }
+
+  .diff-row {
+    display: flex; gap: 10px; justify-content: center;
+    margin-bottom: 28px;
+  }
+  .diff-btn {
+    padding: 8px 20px;
+    border-radius: 999px;
+    border: 2px solid var(--card2);
+    background: var(--card);
+    color: var(--gris);
+    cursor: pointer; font-size: .9rem;
+    transition: all .2s;
+  }
+  .diff-btn.active { border-color: var(--or); color: var(--or); background: var(--card2); }
+
+  .btn-start {
+    padding: 14px 40px;
+    font-size: 1.1rem; font-weight: 700;
+    background: var(--vert);
+    color: #fff;
+    border: none; border-radius: 999px;
+    cursor: pointer;
+    transition: background .2s, transform .15s;
+    box-shadow: 0 4px 20px rgba(0,132,61,.35);
+  }
+  .btn-start:hover { background: #00a84e; transform: scale(1.03); }
+
+  /* ── ÉCRAN DE QUIZ ── */
+  #screen-quiz { display: none; }
+
+  .quiz-top {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .quiz-top .cat-label {
+    font-size: .8rem; color: var(--gris);
+    background: var(--card2); padding: 4px 12px; border-radius: 999px;
+  }
+  .score-live {
+    font-size: .85rem; font-weight: 700;
+    color: var(--or);
+  }
+
+  .progress-bar {
+    width: 100%; height: 6px;
+    background: var(--card2);
+    border-radius: 999px;
+    margin-bottom: 28px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--vert), var(--or));
+    border-radius: 999px;
+    transition: width .4s ease;
+  }
+
+  .question-num { font-size: .8rem; color: var(--gris); margin-bottom: 10px; }
+  .question-text {
+    font-size: 1.15rem; font-weight: 700;
+    line-height: 1.5;
+    margin-bottom: 8px;
+  }
+  .question-context {
+    font-size: .85rem; color: var(--gris);
+    margin-bottom: 24px;
+    font-style: italic;
+  }
+
+  .options { display: flex; flex-direction: column; gap: 12px; }
+  .option-btn {
+    padding: 14px 18px;
+    background: var(--card);
+    border: 2px solid var(--card2);
+    border-radius: var(--radius);
+    color: var(--texte);
+    text-align: left;
+    font-size: .95rem;
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+    line-height: 1.4;
+  }
+  .option-btn:hover:not(:disabled) { border-color: var(--vert); background: var(--card2); }
+  .option-btn.correct { border-color: var(--vert) !important; background: rgba(0,132,61,.2) !important; }
+  .option-btn.wrong   { border-color: var(--rouge) !important; background: rgba(206,17,38,.15) !important; }
+  .option-btn:disabled { cursor: default; }
+
+  .feedback-box {
+    margin-top: 20px;
+    padding: 14px 18px;
+    border-radius: var(--radius);
+    font-size: .9rem;
+    line-height: 1.5;
+    display: none;
+  }
+  .feedback-box.show { display: block; }
+  .feedback-box.ok  { background: rgba(0,132,61,.15); border-left: 4px solid var(--vert); }
+  .feedback-box.ko  { background: rgba(206,17,38,.1); border-left: 4px solid var(--rouge); }
+  .feedback-title { font-weight: 700; margin-bottom: 4px; }
+
+  .btn-next {
+    margin-top: 20px;
+    padding: 12px 32px;
+    background: var(--vert);
+    color: #fff; border: none;
+    border-radius: 999px;
+    font-size: 1rem; font-weight: 700;
+    cursor: pointer;
+    display: none;
+    transition: background .2s;
+  }
+  .btn-next.show { display: inline-block; }
+  .btn-next:hover { background: #00a84e; }
+
+  /* ── ÉCRAN RÉSULTAT ── */
+  #screen-result { display: none; text-align: center; }
+  .result-score-circle {
+    width: 140px; height: 140px;
+    border-radius: 50%;
+    margin: 32px auto 20px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    font-size: 2.2rem; font-weight: 900;
+    border: 6px solid var(--vert);
+    background: var(--card);
+    position: relative;
+  }
+  .result-score-circle small { font-size: .75rem; color: var(--gris); font-weight: 400; }
+  .result-mention {
+    font-size: 1.4rem; font-weight: 800;
+    margin-bottom: 8px;
+  }
+  .result-comment { color: var(--gris); margin-bottom: 28px; }
+
+  .result-stats {
+    display: flex; gap: 16px; justify-content: center;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+  .stat-box {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 16px 24px;
+    min-width: 110px;
+  }
+  .stat-num { font-size: 1.8rem; font-weight: 800; }
+  .stat-num.g { color: var(--vert); }
+  .stat-num.r { color: var(--rouge); }
+  .stat-num.o { color: var(--or); }
+  .stat-label { font-size: .78rem; color: var(--gris); margin-top: 2px; }
+
+  .btn-replay {
+    padding: 12px 32px;
+    background: var(--or); color: #0f1117;
+    border: none; border-radius: 999px;
+    font-size: 1rem; font-weight: 800;
+    cursor: pointer; margin: 6px;
+    transition: transform .15s;
+  }
+  .btn-replay:hover { transform: scale(1.04); }
+  .btn-home {
+    padding: 12px 32px;
+    background: transparent; color: var(--texte);
+    border: 2px solid var(--card2); border-radius: 999px;
+    font-size: 1rem; font-weight: 600;
+    cursor: pointer; margin: 6px;
+    transition: border-color .2s;
+  }
+  .btn-home:hover { border-color: var(--gris); }
+
+  /* ── REVUE DES RÉPONSES ── */
+  .review-section { margin-top: 40px; text-align: left; }
+  .review-title { font-size: 1rem; font-weight: 700; color: var(--or); margin-bottom: 16px; }
+  .review-item {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 12px;
+    border-left: 4px solid var(--card2);
+  }
+  .review-item.ok { border-left-color: var(--vert); }
+  .review-item.ko { border-left-color: var(--rouge); }
+  .review-q { font-size: .9rem; font-weight: 600; margin-bottom: 6px; }
+  .review-a { font-size: .82rem; color: var(--gris); }
+  .review-a span { color: var(--texte); }
+
+  /* ── BADGES PAYS ── */
+  .pays-strip {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    justify-content: center; margin-top: 16px;
+  }
+  .pays-badge {
+    font-size: .7rem; color: var(--gris);
+    background: var(--card2);
+    padding: 3px 8px; border-radius: 999px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-ohada">OHADA</div>
+  <div>
+    <h1>Quiz <span>Comptabilité & Contrôle de Gestion</span></h1>
+    <p>Espace OHADA · SYSCOHADA Révisé 2017 · Afrique subsaharienne</p>
+  </div>
+</header>
+
+<main>
+
+  <!-- ═══ ÉCRAN ACCUEIL ═══ -->
+  <div id="screen-home">
+    <p class="hero-title">Testez vos connaissances</p>
+    <p class="hero-sub">17 pays · Plan Comptable SYSCOHADA · Contrôle de gestion · Audit</p>
+
+    <div class="pays-strip">
+      <span class="pays-badge">🇧🇯 Bénin</span><span class="pays-badge">🇧🇫 Burkina Faso</span>
+      <span class="pays-badge">🇨🇲 Cameroun</span><span class="pays-badge">🇨🇫 Centrafrique</span>
+      <span class="pays-badge">🇰🇲 Comores</span><span class="pays-badge">🇨🇬 Congo</span>
+      <span class="pays-badge">🇨🇮 Côte d'Ivoire</span><span class="pays-badge">🇬🇦 Gabon</span>
+      <span class="pays-badge">🇬🇳 Guinée Conakry</span><span class="pays-badge">🇬🇼 Guinée-Bissau</span>
+      <span class="pays-badge">🇬🇶 Guinée Éq.</span><span class="pays-badge">🇲🇱 Mali</span>
+      <span class="pays-badge">🇳🇪 Niger</span><span class="pays-badge">🇸🇳 Sénégal</span>
+      <span class="pays-badge">🇹🇩 Tchad</span><span class="pays-badge">🇹🇬 Togo</span>
+      <span class="pays-badge">🇨🇩 RDC</span>
+    </div>
+
+    <p style="margin:28px 0 16px; font-weight:700; color:var(--gris); font-size:.85rem; text-transform:uppercase; letter-spacing:1px;">Choisir une thématique</p>
+    <div class="cat-grid" id="cat-grid"></div>
+
+    <p style="margin:0 0 12px; font-weight:700; color:var(--gris); font-size:.85rem; text-transform:uppercase; letter-spacing:1px;">Niveau</p>
+    <div class="diff-row">
+      <button class="diff-btn active" data-diff="all">Tous niveaux</button>
+      <button class="diff-btn" data-diff="easy">Débutant</button>
+      <button class="diff-btn" data-diff="medium">Intermédiaire</button>
+      <button class="diff-btn" data-diff="hard">Expert</button>
+    </div>
+
+    <button class="btn-start" onclick="startQuiz()">Commencer le quiz ▶</button>
+  </div>
+
+  <!-- ═══ ÉCRAN QUIZ ═══ -->
+  <div id="screen-quiz">
+    <div class="quiz-top">
+      <span class="cat-label" id="cat-label">—</span>
+      <span class="score-live" id="score-live">Score : 0</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    <p class="question-num" id="question-num"></p>
+    <p class="question-text" id="question-text"></p>
+    <p class="question-context" id="question-context"></p>
+    <div class="options" id="options"></div>
+    <div class="feedback-box" id="feedback-box">
+      <p class="feedback-title" id="feedback-title"></p>
+      <p id="feedback-body"></p>
+    </div>
+    <button class="btn-next" id="btn-next" onclick="nextQuestion()">Question suivante →</button>
+  </div>
+
+  <!-- ═══ ÉCRAN RÉSULTAT ═══ -->
+  <div id="screen-result">
+    <div class="result-score-circle" id="score-circle">
+      <span id="score-pct">0%</span>
+      <small id="score-frac"></small>
+    </div>
+    <p class="result-mention" id="result-mention"></p>
+    <p class="result-comment" id="result-comment"></p>
+    <div class="result-stats">
+      <div class="stat-box"><div class="stat-num g" id="r-correct">0</div><div class="stat-label">Bonnes réponses</div></div>
+      <div class="stat-box"><div class="stat-num r" id="r-wrong">0</div><div class="stat-label">Mauvaises réponses</div></div>
+      <div class="stat-box"><div class="stat-num o" id="r-total">0</div><div class="stat-label">Questions</div></div>
+    </div>
+    <button class="btn-replay" onclick="replayQuiz()">Rejouer</button>
+    <button class="btn-home" onclick="goHome()">← Accueil</button>
+    <div class="review-section">
+      <p class="review-title">📋 Revue des réponses</p>
+      <div id="review-list"></div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ══════════════════════════════════════════════════════
+//  BASE DE QUESTIONS
+// ══════════════════════════════════════════════════════
+const CATEGORIES = [
+  { id:"syscohada", name:"Plan Comptable SYSCOHADA", icon:"📚", color:"#00843D" },
+  { id:"bilan",     name:"Bilan & États Financiers",  icon:"📊", color:"#FCD116" },
+  { id:"gestion",   name:"Contrôle de Gestion",       icon:"🎯", color:"#e67e22" },
+  { id:"audit",     name:"Audit & Révision",           icon:"🔍", color:"#3498db" },
+  { id:"fiscalite", name:"Fiscalité OHADA",            icon:"🏛️", color:"#9b59b6" },
+  { id:"ohada",     name:"Droit OHADA & Institutions", icon:"⚖️", color:"#CE1126" },
+];
+
+const QUESTIONS = [
+  // ── SYSCOHADA ──
+  { cat:"syscohada", diff:"easy", q:"Dans le SYSCOHADA révisé, à quelle classe appartient le compte 101 'Capital social' ?", opts:["Classe 1","Classe 2","Classe 3","Classe 4"], ans:0, exp:"La Classe 1 regroupe les comptes de ressources durables : capitaux propres et dettes financières à long terme. Le compte 101 est le compte de capital social." },
+  { cat:"syscohada", diff:"easy", q:"Combien de classes de comptes comporte le plan comptable SYSCOHADA révisé 2017 ?", opts:["7 classes","8 classes","9 classes","10 classes"], ans:1, exp:"Le SYSCOHADA révisé comporte 8 classes : Classe 1 (Ressources durables), 2 (Actif immobilisé), 3 (Stocks), 4 (Tiers), 5 (Trésorerie), 6 (Charges), 7 (Produits), 8 (Comptes spéciaux)." },
+  { cat:"syscohada", diff:"easy", q:"Quel compte enregistre les achats de marchandises dans le SYSCOHADA ?", opts:["Compte 601","Compte 701","Compte 401","Compte 301"], ans:0, exp:"Le compte 601 'Achats de marchandises' est un compte de charges de la classe 6. Il enregistre les achats revendus en l'état." },
+  { cat:"syscohada", diff:"medium", q:"Dans le SYSCOHADA, quel est le traitement des frais d'établissement ?", opts:["Immobilisés en classe 2, amortis sur 3 ans max","Comptabilisés directement en charges de la classe 6","Intégrés dans les réserves en classe 1","Portés en classe 3 comme stocks"], ans:0, exp:"Les frais d'établissement (frais de constitution, de 1er établissement) sont activés au compte 201 et amortis sur 3 ans maximum dans le SYSCOHADA révisé." },
+  { cat:"syscohada", diff:"medium", q:"Le compte 491 'Provisions pour dépréciation des comptes clients' est crédité lors de :", opts:["La constitution de la dépréciation","L'encaissement du client","La vente à crédit","Le retour de marchandises"], ans:0, exp:"Lors de la constitution ou de l'augmentation d'une dépréciation client, on débite 6971 (Dotations aux dépréciations) et on crédite 491 (Provisions pour dépréciation des comptes clients)." },
+  { cat:"syscohada", diff:"hard", q:"Dans le SYSCOHADA révisé 2017, comment sont traitées les immobilisations financières en contrat de location-financement (leasing) chez le preneur ?", opts:["Actif au bilan du preneur avec contrepartie dette financière","Charges locatives en classe 6 uniquement","Hors bilan, mentionnées dans l'annexe","Immobilisations du bailleur uniquement"], ans:0, exp:"Le SYSCOHADA révisé adopte l'approche substance over form : le preneur comptabilise le bien à l'actif et une dette financière au passif. C'est un alignement sur les normes IFRS 16." },
+  { cat:"syscohada", diff:"hard", q:"Quel est le numéro de compte SYSCOHADA pour les 'Subventions d'investissement reçues' ?", opts:["141","131","181","261"], ans:0, exp:"Le compte 141 'Subventions d'investissement' appartient à la Classe 1. Ces subventions sont reprises progressivement en produits au rythme de l'amortissement du bien financé." },
+  { cat:"syscohada", diff:"medium", q:"La méthode FIFO (Premier entré, Premier sorti) pour la valorisation des stocks est-elle admise par le SYSCOHADA ?", opts:["Oui, avec le CMUP c'est l'une des deux méthodes autorisées","Non, seul le CMUP est autorisé","Oui, c'est la seule méthode autorisée","Non, seul le LIFO est autorisé"], ans:0, exp:"Le SYSCOHADA autorise deux méthodes de valorisation des sorties de stocks : le CMUP (Coût Moyen Unitaire Pondéré) et le FIFO (Premier Entré Premier Sorti / PEPS). Le LIFO est interdit." },
+
+  // ── BILAN & ÉTATS FINANCIERS ──
+  { cat:"bilan", diff:"easy", q:"Dans le SYSCOHADA, combien d'états financiers composent le système normal ?", opts:["5 états","4 états","3 états","2 états"], ans:0, exp:"Le système normal comprend 5 états financiers : Bilan, Compte de résultat, Tableau des flux de trésorerie (TFT), Tableau de variation des capitaux propres (TAFIRE dans l'ancien SYSCOA) et Notes annexes." },
+  { cat:"bilan", diff:"easy", q:"Le Fonds de Roulement Net Global (FRNG) se calcule comme :", opts:["Ressources stables − Emplois stables","Actif courant − Passif courant","Chiffre d'affaires − Charges variables","Total actif − Total dettes"], ans:0, exp:"FRNG = Ressources stables (Capitaux propres + Dettes financières) − Emplois stables (Actif immobilisé net). Il mesure l'excédent de ressources durables finançant le cycle d'exploitation." },
+  { cat:"bilan", diff:"medium", q:"Le Besoin en Fonds de Roulement (BFR) est positif. Cela signifie que :", opts:["L'entreprise doit financer un besoin d'exploitation","L'entreprise dégage une ressource d'exploitation","L'entreprise est en cessation de paiements","Le stock est nul"], ans:0, exp:"Un BFR positif signifie que les emplois cycliques (stocks + créances) > ressources cycliques (dettes fournisseurs). L'entreprise doit financer ce besoin, idéalement par le FRNG." },
+  { cat:"bilan", diff:"medium", q:"Dans l'analyse financière, un ratio de liquidité générale supérieur à 1 indique que :", opts:["L'actif courant couvre le passif courant","L'entreprise est surendettée","Le bénéfice est supérieur aux dettes","Le FRNG est négatif"], ans:0, exp:"Ratio de liquidité générale = Actif courant / Passif courant. > 1 signifie que l'actif courant est suffisant pour couvrir les dettes à court terme. C'est un signe de solvabilité à court terme." },
+  { cat:"bilan", diff:"hard", q:"L'Excédent Brut d'Exploitation (EBE) est obtenu à partir des Soldes Intermédiaires de Gestion (SIG) selon la formule :", opts:["VA − Charges de personnel − Impôts et taxes","CA − Coût d'achat des marchandises vendues","Résultat net + Dotations − Reprises","Marge brute − Charges fixes"], ans:0, exp:"EBE = Valeur Ajoutée (VA) − Charges de personnel − Impôts et taxes (hors IS). L'EBE mesure la capacité de l'entreprise à générer des ressources via son activité principale, avant politique financière et amortissements." },
+  { cat:"bilan", diff:"hard", q:"La Capacité d'Autofinancement (CAF) selon la méthode additive est :", opts:["Résultat net + Dotations nettes aux amortissements et provisions − Plus-values de cession","EBE − Variation du BFR","Résultat net × (1 + taux d'amortissement)","Chiffre d'affaires − Charges décaissables"], ans:0, exp:"CAF (méthode additive) = Résultat net + Dotations aux amortissements & provisions − Reprises sur provisions − Plus-values de cession + Moins-values de cession. Elle représente le flux de trésorerie potentiel généré par l'activité." },
+
+  // ── CONTRÔLE DE GESTION ──
+  { cat:"gestion", diff:"easy", q:"En méthode des coûts variables, le Seuil de Rentabilité (SR) correspond à :", opts:["Charges fixes / Taux de marge sur coût variable","Chiffre d'affaires / Résultat net","Charges totales / Nombre de produits","Marge brute / Charges variables"], ans:0, exp:"SR = Charges fixes / Taux de marge sur coût variable (TMSCV). Le TMSCV = Marge sur coût variable / Chiffre d'affaires. Le SR est le niveau de CA où le résultat est nul (point mort)." },
+  { cat:"gestion", diff:"easy", q:"Qu'est-ce que la Marge sur Coût Variable (MCV) ?", opts:["Chiffre d'affaires − Charges variables","Chiffre d'affaires − Charges fixes","Résultat net + Charges fixes","Coût de revient − Prix de vente"], ans:0, exp:"MCV = CA − Charges variables. Elle représente la contribution de chaque produit à la couverture des charges fixes. La somme des MCV − Charges fixes = Résultat." },
+  { cat:"gestion", diff:"medium", q:"Dans la méthode ABC (Activity Based Costing), qu'est-ce qu'un inducteur de coût ?", opts:["La variable qui explique la consommation de ressources par une activité","Le taux horaire d'une machine","Le coefficient d'imputation des charges indirectes","Le prix de revient unitaire"], ans:0, exp:"Un inducteur de coût (cost driver) est la variable causale qui permet d'affecter les coûts d'une activité aux objets de coûts (produits, clients). Exemple : nombre de commandes pour l'activité 'traitement des commandes'." },
+  { cat:"gestion", diff:"medium", q:"L'écart sur prix en contrôle de gestion se calcule comme :", opts:["(Prix réel − Prix standard) × Quantité réelle","(Quantité réelle − Quantité standard) × Prix standard","Coût réel − Coût budgété","Prix de vente − Coût de revient"], ans:0, exp:"Écart sur prix = (Prix réel − Prix standard) × Quantité réelle. Il mesure l'impact de la variation du prix d'achat sur les coûts. Un écart négatif est favorable (on a acheté moins cher que prévu)." },
+  { cat:"gestion", diff:"medium", q:"Le Tableau de Bord Prospectif (Balanced Scorecard) de Kaplan & Norton repose sur combien d'axes ?", opts:["4 axes","3 axes","5 axes","2 axes"], ans:0, exp:"Le BSC de Kaplan & Norton (1992) repose sur 4 axes : Financier, Clients, Processus internes, Apprentissage et développement organisationnel. Il permet d'aligner la stratégie sur les indicateurs opérationnels." },
+  { cat:"gestion", diff:"hard", q:"En gestion budgétaire, l'écart global sur résultat se décompose en :", opts:["Écart sur marge + Écart sur frais fixes","Écart sur CA − Écart sur charges variables","Écart sur volume + Écart sur composition","Marge budgétée − Marge réelle uniquement"], ans:0, exp:"L'écart global sur résultat = Écart sur marge (dû aux ventes) + Écart sur frais fixes. L'écart sur marge se décompose lui-même en écart sur prix de vente, écart sur coût variable et écart sur volume/mix." },
+  { cat:"gestion", diff:"hard", q:"Le coût de revient complet d'un produit inclut :", opts:["Charges directes + Quote-part des charges indirectes","Charges variables uniquement","Prix d'achat des matières premières uniquement","Charges fixes uniquement"], ans:0, exp:"Le coût de revient complet (méthode des centres d'analyse / coût complet) = charges directes affectées au produit + quote-part des charges indirectes imputées selon des clés de répartition. Il permet de fixer un prix de vente couvrant tous les coûts." },
+
+  // ── AUDIT ──
+  { cat:"audit", diff:"easy", q:"Quelle est la principale mission du Commissaire aux Comptes dans les pays OHADA ?", opts:["Certifier que les comptes donnent une image fidèle de la situation de l'entreprise","Établir la déclaration fiscale annuelle","Gérer la trésorerie de l'entreprise","Présenter les budgets prévisionnels"], ans:0, exp:"Le CAC a pour mission légale de certifier que les comptes annuels sont réguliers, sincères et donnent une image fidèle du patrimoine, de la situation financière et du résultat de l'entreprise. C'est le fondement de l'audit légal en droit OHADA." },
+  { cat:"audit", diff:"easy", q:"En audit, le terme 'assertion' désigne :", opts:["Une affirmation implicite ou explicite de la direction sur les états financiers","Un document comptable fourni par le client","La lettre de mission signée par l'auditeur","Un ratio financier"], ans:0, exp:"Les assertions sont les affirmations de la direction sous-jacentes aux états financiers (existence, exhaustivité, exactitude, évaluation, droits & obligations, présentation). L'auditeur collecte des éléments probants pour vérifier chaque assertion." },
+  { cat:"audit", diff:"medium", q:"Le risque d'audit se décompose en :", opts:["Risque inhérent × Risque de non-contrôle × Risque de non-détection","Risque pays + Risque sectoriel + Risque opérationnel","Risque de fraude + Risque d'erreur + Risque fiscal","Risque financier × Risque de crédit"], ans:0, exp:"Risque d'audit = Risque inhérent (RI) × Risque de contrôle (RC) × Risque de non-détection (RND). L'auditeur agit sur RND en modulant l'étendue de ses travaux, sachant que RI et RC sont des données de l'environnement audité." },
+  { cat:"audit", diff:"medium", q:"Qu'est-ce qu'une lettre d'affirmation (lettre de représentation) en audit ?", opts:["Document signé par la direction confirmant les informations fournies à l'auditeur","Rapport de certification émis par le CAC","Contrat de mission entre le CAC et l'entreprise","Note interne sur les risques identifiés"], ans:0, exp:"La lettre d'affirmation (ISA 580) est signée par la direction et confirme les assertions présentées à l'auditeur. Elle ne remplace pas les travaux d'audit mais constitue un élément probant et engage la responsabilité de la direction." },
+  { cat:"audit", diff:"hard", q:"La procédure d'audit des comptes clients par confirmation directe (circularisation) vise principalement à tester :", opts:["L'existence et l'exactitude des soldes clients","L'évaluation des stocks","La complétude des charges","La régularité fiscale"], ans:0, exp:"La circularisation clients teste l'assertion d'existence (les clients reconnaissent la dette) et d'exactitude (le montant est correct). C'est une procédure externe très fiable car l'information provient d'un tiers indépendant." },
+
+  // ── FISCALITÉ ──
+  { cat:"fiscalite", diff:"easy", q:"La TVA (Taxe sur la Valeur Ajoutée) est une taxe :", opts:["Indirecte collectée par les entreprises pour le compte de l'État","Directe payée par le consommateur final à l'État","Prélevée uniquement sur les bénéfices des sociétés","Applicable uniquement aux importations"], ans:0, exp:"La TVA est un impôt indirect. Les entreprises assujetties la collectent auprès de leurs clients (TVA collectée) et déduisent la TVA payée à leurs fournisseurs (TVA déductible). Elles versent la différence à l'État." },
+  { cat:"fiscalite", diff:"medium", q:"Le mécanisme de l'acompte provisionnel en Impôt sur les Sociétés (IS) consiste à :", opts:["Verser des acomptes sur l'IS de l'exercice en cours, basés sur l'IS N-1","Reporter l'IS à la clôture de l'exercice suivant","Déduire l'IS des charges d'exploitation","Payer l'IS en une fois après dépôt de la liasse fiscale"], ans:0, exp:"L'acompte provisionnel permet à l'État de percevoir l'IS en cours d'exercice. Les entreprises versent des fractions (souvent trimestrielles) calculées sur la base de l'IS de l'exercice précédent, régularisées lors du dépôt de la liasse." },
+  { cat:"fiscalite", diff:"hard", q:"En droit fiscal OHADA (harmonisation CEMAC/UEMOA), le prix de transfert concerne principalement :", opts:["Les transactions entre sociétés d'un même groupe à des prix différents du marché","Le transfert de TVA entre filiales","La cession d'immobilisations entre associés","Le rapatriement de dividendes"], ans:0, exp:"Les prix de transfert sont les prix pratiqués dans les transactions intra-groupe (biens, services, prêts, redevances). Les administrations fiscales les contrôlent par rapport au prix de pleine concurrence (arm's length) pour éviter le transfert de bénéfices vers des pays à faible imposition." },
+
+  // ── DROIT OHADA ──
+  { cat:"ohada", diff:"easy", q:"Quelle est l'institution chargée d'interpréter les Actes Uniformes OHADA ?", opts:["La CCJA (Cour Commune de Justice et d'Arbitrage)","La CIJ (Cour Internationale de Justice)","La CEDEAO","L'Union Africaine"], ans:0, exp:"La CCJA (Cour Commune de Justice et d'Arbitrage) est la juridiction supranationale de l'OHADA. Elle interprète et applique les Actes Uniformes, et son siège est à Abidjan (Côte d'Ivoire)." },
+  { cat:"ohada", diff:"easy", q:"En quelle année le Traité de l'OHADA a-t-il été signé ?", opts:["1993","1987","2000","2010"], ans:0, exp:"Le Traité relatif à l'Harmonisation du Droit des Affaires en Afrique (OHADA) a été signé le 17 octobre 1993 à Port-Louis (Maurice). Il est entré en vigueur en 1995." },
+  { cat:"ohada", diff:"medium", q:"L'Acte Uniforme OHADA relatif au droit comptable et à l'information financière (AUDCIF) révisé est entré en vigueur le :", opts:["1er janvier 2018","1er janvier 2014","1er juillet 2001","1er janvier 2020"], ans:0, exp:"L'AUDCIF révisé, qui introduit le SYSCOHADA révisé 2017, est entré en vigueur le 1er janvier 2018. Il modernise les normes comptables des 17 pays membres en les rapprochant des IFRS." },
+  { cat:"ohada", diff:"hard", q:"Dans l'espace OHADA, quel acte uniforme régit les procédures collectives d'apurement du passif (faillite) ?", opts:["AUPC (Acte Uniforme portant organisation des Procédures Collectives)","AUDCG (Droit Commercial Général)","AUSCGIE (Sociétés Commerciales)","AUPSRVE (Sûretés)"], ans:0, exp:"L'AUPC (Acte Uniforme portant organisation des Procédures Collectives d'apurement du passif) régit le règlement préventif, le redressement judiciaire et la liquidation des biens. Il a été révisé en 2015 pour introduire la procédure de conciliation." },
+];
+
+// ══════════════════════════════════════════════════════
+//  ÉTAT DE L'APPLICATION
+// ══════════════════════════════════════════════════════
+let selectedCats = [];
+let selectedDiff = "all";
+let currentQuestions = [];
+let currentIdx = 0;
+let score = 0;
+let answers = [];
+
+// ── Rendu des catégories ──
+function renderCats() {
+  const grid = document.getElementById("cat-grid");
+  grid.innerHTML = "";
+  CATEGORIES.forEach(cat => {
+    const count = QUESTIONS.filter(q => q.cat === cat.id).length;
+    const d = document.createElement("div");
+    d.className = "cat-card";
+    d.dataset.id = cat.id;
+    d.innerHTML = `<div class="cat-icon">${cat.icon}</div><div class="cat-name">${cat.name}</div><div class="cat-count">${count} questions</div>`;
+    d.onclick = () => toggleCat(cat.id, d);
+    grid.appendChild(d);
+  });
+}
+
+function toggleCat(id, el) {
+  const i = selectedCats.indexOf(id);
+  if (i === -1) selectedCats.push(id);
+  else selectedCats.splice(i, 1);
+  el.classList.toggle("selected");
+}
+
+// ── Sélection de difficulté ──
+document.querySelectorAll(".diff-btn").forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll(".diff-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    selectedDiff = btn.dataset.diff;
+  };
+});
+
+// ── Démarrer le quiz ──
+function startQuiz() {
+  let pool = selectedCats.length === 0
+    ? [...QUESTIONS]
+    : QUESTIONS.filter(q => selectedCats.includes(q.cat));
+
+  if (selectedDiff !== "all")
+    pool = pool.filter(q => q.diff === selectedDiff);
+
+  if (pool.length === 0) {
+    alert("Aucune question pour cette sélection. Élargissez vos critères.");
+    return;
+  }
+
+  // Mélange Fisher-Yates
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  currentQuestions = pool.slice(0, Math.min(pool.length, 20));
+  currentIdx = 0; score = 0; answers = [];
+
+  document.getElementById("screen-home").style.display = "none";
+  document.getElementById("screen-quiz").style.display = "block";
+  document.getElementById("screen-result").style.display = "none";
+
+  renderQuestion();
+}
+
+// ── Afficher une question ──
+function renderQuestion() {
+  const q = currentQuestions[currentIdx];
+  const total = currentQuestions.length;
+
+  document.getElementById("question-num").textContent = `Question ${currentIdx + 1} / ${total}`;
+  document.getElementById("question-text").textContent = q.q;
+  document.getElementById("question-context").textContent =
+    ({ easy:"🟢 Niveau débutant", medium:"🟡 Niveau intermédiaire", hard:"🔴 Niveau expert" })[q.diff] + " · " +
+    (CATEGORIES.find(c => c.id === q.cat)?.name || "");
+
+  const catLabel = document.getElementById("cat-label");
+  catLabel.textContent = CATEGORIES.find(c => c.id === q.cat)?.icon + " " + CATEGORIES.find(c => c.id === q.cat)?.name;
+
+  const progress = ((currentIdx) / total) * 100;
+  document.getElementById("progress-fill").style.width = progress + "%";
+  document.getElementById("score-live").textContent = `Score : ${score}`;
+
+  const optDiv = document.getElementById("options");
+  optDiv.innerHTML = "";
+  q.opts.forEach((opt, i) => {
+    const btn = document.createElement("button");
+    btn.className = "option-btn";
+    btn.textContent = `${["A","B","C","D"][i]}. ${opt}`;
+    btn.onclick = () => selectAnswer(i, btn);
+    optDiv.appendChild(btn);
+  });
+
+  const fb = document.getElementById("feedback-box");
+  fb.className = "feedback-box";
+  document.getElementById("btn-next").classList.remove("show");
+}
+
+// ── Sélection d'une réponse ──
+function selectAnswer(idx, btn) {
+  const q = currentQuestions[currentIdx];
+  const allBtns = document.querySelectorAll(".option-btn");
+  allBtns.forEach(b => b.disabled = true);
+
+  const correct = idx === q.ans;
+  if (correct) score++;
+
+  allBtns[q.ans].classList.add("correct");
+  if (!correct) btn.classList.add("wrong");
+
+  answers.push({ q: q.q, chosen: q.opts[idx], correct: q.opts[q.ans], ok: correct });
+
+  const fb = document.getElementById("feedback-box");
+  fb.className = "feedback-box show " + (correct ? "ok" : "ko");
+  document.getElementById("feedback-title").textContent = correct ? "✅ Bonne réponse !" : "❌ Mauvaise réponse";
+  document.getElementById("feedback-body").textContent = q.exp;
+
+  document.getElementById("btn-next").classList.add("show");
+  document.getElementById("score-live").textContent = `Score : ${score}`;
+}
+
+// ── Question suivante ──
+function nextQuestion() {
+  currentIdx++;
+  if (currentIdx >= currentQuestions.length) showResult();
+  else renderQuestion();
+}
+
+// ── Afficher les résultats ──
+function showResult() {
+  document.getElementById("screen-quiz").style.display = "none";
+  document.getElementById("screen-result").style.display = "block";
+
+  const total = currentQuestions.length;
+  const pct = Math.round((score / total) * 100);
+
+  document.getElementById("score-pct").textContent = pct + "%";
+  document.getElementById("score-frac").textContent = `${score}/${total}`;
+  document.getElementById("r-correct").textContent = score;
+  document.getElementById("r-wrong").textContent = total - score;
+  document.getElementById("r-total").textContent = total;
+
+  const circle = document.getElementById("score-circle");
+  circle.style.borderColor = pct >= 70 ? "var(--vert)" : pct >= 50 ? "var(--or)" : "var(--rouge)";
+
+  let mention, comment;
+  if (pct >= 90) { mention = "🏆 Excellent !"; comment = "Maîtrise parfaite du droit et de la comptabilité OHADA."; }
+  else if (pct >= 70) { mention = "👍 Bien !"; comment = "Bonnes bases — quelques points à consolider."; }
+  else if (pct >= 50) { mention = "📖 Passable"; comment = "Des lacunes à combler. Révisez les thématiques en rouge."; }
+  else { mention = "🔄 À retravailler"; comment = "Reprenez les fondamentaux du SYSCOHADA et du contrôle de gestion."; }
+
+  document.getElementById("result-mention").textContent = mention;
+  document.getElementById("result-comment").textContent = comment;
+
+  document.getElementById("progress-fill").style.width = "100%";
+
+  // Revue
+  const list = document.getElementById("review-list");
+  list.innerHTML = "";
+  answers.forEach((a, i) => {
+    const d = document.createElement("div");
+    d.className = "review-item " + (a.ok ? "ok" : "ko");
+    d.innerHTML = `<p class="review-q">${i+1}. ${a.q}</p>
+      <p class="review-a">Votre réponse : <span>${a.chosen}</span>${!a.ok ? ` · Bonne réponse : <span style="color:var(--vert)">${a.correct}</span>` : ''}</p>`;
+    list.appendChild(d);
+  });
+}
+
+function replayQuiz() {
+  currentIdx = 0; score = 0; answers = [];
+  // Re-mélanger
+  for (let i = currentQuestions.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [currentQuestions[i], currentQuestions[j]] = [currentQuestions[j], currentQuestions[i]];
+  }
+  document.getElementById("screen-result").style.display = "none";
+  document.getElementById("screen-quiz").style.display = "block";
+  renderQuestion();
+}
+
+function goHome() {
+  document.getElementById("screen-result").style.display = "none";
+  document.getElementById("screen-home").style.display = "block";
+}
+
+// ── Init ──
+renderCats();
+</script>
+</body>
+</html>
